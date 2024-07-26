@@ -5,7 +5,7 @@ from expense import Expense
 from tabulate import tabulate
 
 def main():
-    print("🍀 The Expense Tracker!")
+    print(green("🍀 The Expense Tracker!"))
     expense_file_path = "expense.csv"
     budget_limit = 100000
 
@@ -16,7 +16,7 @@ def main():
     summarize_expenses(expense_file_path, budget_limit)
 
 def get_user_expense() -> Expense:
-    print("💰 Your Expense")
+    print(yellow("💰 Your Expense"))
     expense_name = input("Enter expense name: ")
     expense_amount = float(input("Enter expense amount: "))
     expense_categories = ["Food", "Home", "Work", "Shop", "Pet", "Fun", "Random"]
@@ -24,7 +24,7 @@ def get_user_expense() -> Expense:
     while True:
         print("Select a category: ")
         for index, category_name in enumerate(expense_categories):
-            print(f"  {index + 1}. {category_name}")
+            print(green(f"  {index + 1}. {category_name}"))
 
         selected_index = int(input(f"Enter a category number [1 - {len(expense_categories)}]: ")) - 1
 
@@ -32,18 +32,18 @@ def get_user_expense() -> Expense:
             selected_category = expense_categories[selected_index]
             return Expense(name=expense_name, category=selected_category, amount=expense_amount)
         else:
-            print("Invalid category. Please try again!")
+            print(red("Invalid category. Please try again!"))
 
 def write_expense_to_file(expense: Expense, file_path: str):
-    print(f"💰 Saving Your Expense: {expense} to {file_path}")
+    print(yellow(f"💰 Saving Your Expense: {expense} to {file_path}"))
     try:
         with open(file_path, "a", encoding="utf-8") as file:
             file.write(f"{expense.name},{expense.amount},{expense.category}\n")
     except Exception as error:
-        print(f"Error writing to file: {error}")
+        print(red(f"Error writing to file: {error}"))
 
 def summarize_expenses(file_path: str, budget: float):
-    print("💰 Summarizing Your Expenses")
+    print(yellow("/n /n💰 Summarizing Your Expenses"))
     expenses: List[Expense] = []
     try:
         with open(file_path, "r", encoding="utf-8") as file:
@@ -53,9 +53,9 @@ def summarize_expenses(file_path: str, budget: float):
                     name, amount, category = parts
                     expenses.append(Expense(name=name, amount=float(amount), category=category))
                 else:
-                    print(f"Skipping invalid line: {line.strip()}")
+                    print(red(f"Skipping invalid line: {line.strip()}"))
     except Exception as error:
-        print(f"Error reading from file: {error}")
+        print(red(f"Error reading from file: {error}"))
         return
 
     expenses_by_category = {}
@@ -66,7 +66,7 @@ def summarize_expenses(file_path: str, budget: float):
     for category, amount in expenses_by_category.items():
         table.append([category, f"₹{amount:.2f}"])
 
-    print("\n💵 Expenses By Category 💵:")
+    print(green("\n💵 Expenses By Category 💵:"))
     print(tabulate(table, headers="firstrow", tablefmt="grid"))
 
     total_expense = sum(expense.amount for expense in expenses)
@@ -84,7 +84,7 @@ def summarize_expenses(file_path: str, budget: float):
     daily_budget = remaining_budget / remaining_days if remaining_days > 0 else 0
     summary_table.append(["Budget Per Day", green(f"₹{daily_budget:.2f}")])
 
-    print("\nSummary:")
+    print(yellow("\nSummary:"))
     if remaining_budget <= 0:
         summary_table.append([red("No balance left"), ""])
     print(tabulate(summary_table, tablefmt="grid"))
@@ -94,6 +94,10 @@ def green(text: str) -> str:
 
 def red(text: str) -> str:
     return f"\033[91m{text}\033[0m"
+
+def yellow(text: str) -> str:
+    return f"\033[93m{text}\033[0m"
+
 
 if __name__ == "__main__":
     main()
