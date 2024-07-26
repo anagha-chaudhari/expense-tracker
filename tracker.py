@@ -1,60 +1,99 @@
+import calendar
+import datetime
+from typing import List
 from expense import Expense
-
+from tabulate import tabulate
 
 def main():
-    print(f"Running Expense Tracker")
-    file_path = "expense.csv"
+    print("🍀 The Expense Tracker!")
+    expense_file_path = "expense.csv"
+    budget_limit = 100000
 
-    # Get user to input for expense
-    expense = get_expense()
+    user_expense = get_user_expense()
 
-    # Write theri expense to a file
-    save_expense(expense, file_path)
+    write_expense_to_file(user_expense, expense_file_path)
 
-    # Read file and summarize all expenses
-    summarize_expense(file_path)
-  
+    summarize_expenses(expense_file_path, budget_limit)
 
-def get_expense():
-    print(f"Getting User Expense")
-    expenseName = input("Enter expense name: ")
-    expenseAmt = float(input("Enter expense amount: "))
-    print(f"You've entered {expenseName}, {expenseAmt}")
-
-    expenseCategories = [
-        "Food", 
-        "Home", 
-        "Work", 
-        "Fun", 
-        "Miscellaneous"
-    ]
+def get_user_expense() -> Expense:
+    print("💰 Your Expense")
+    expense_name = input("Enter expense name: ")
+    expense_amount = float(input("Enter expense amount: "))
+    expense_categories = ["Food", "Home", "Work", "Shop", "Pet", "Fun", "Random"]
 
     while True:
         print("Select a category: ")
-        for i, category_name in enumerate(expenseCategories):
-            print(f"{i+1}. {category_name}")
+        for index, category_name in enumerate(expense_categories):
+            print(f"  {index + 1}. {category_name}")
 
-        value = f"[1 - {len(expenseCategories)}]"
-        index = int(input(f"Enter a category number {value}: ")) - 1
-        
-        if index in range(len(expenseCategories)):
-            selectedCategory = expenseCategories[index]
-            newExpense = Expense(name=expenseName, category=selectedCategory, amount=expenseAmt)
+        selected_index = int(input(f"Enter a category number [1 - {len(expense_categories)}]: ")) - 1
 
-            return newExpense
-                                 
+        if 0 <= selected_index < len(expense_categories):
+            selected_category = expense_categories[selected_index]
+            return Expense(name=expense_name, category=selected_category, amount=expense_amount)
         else:
-            print("Invalid Category. Please try again!")
+            print("Invalid category. Please try again!")
 
-def save_expense(expense, file_path):
-    print(f"Saving User Expense: {expense} to {file_path}")
-    with open(file_path, "a") as f:
-        f.write(f"{expense.name},{expense.amount},{expense}\n")
-   
+def write_expense_to_file(expense: Expense, file_path: str):
+    print(f"💰 Saving Your Expense: {expense} to {file_path}")
+    try:
+        with open(file_path, "a", encoding="utf-8") as file:
+            file.write(f"{expense.name},{expense.amount},{expense.category}\n")
+    except Exception as error:
+        print(f"Error writing to file: {error}")
 
-def summarize_expense(file_path):
-    print(f"Summarize User Expense")
-   
+def summarize_expenses(file_path: str, budget: float):
+    print("💰 Summarizing Your Expenses")
+    expenses: List[Expense] = []
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            for line in file:
+                parts = line.strip().split(",")
+                if len(parts) == 3:
+                    name, amount, category = parts
+                    expenses.append(Expense(name=name, amount=float(amount), category=category))
+                else:
+                    print(f"Skipping invalid line: {line.strip()}")
+    except Exception as error:
+        print(f"Error reading from file: {error}")
+        return
+
+    expenses_by_category = {}
+    for expense in expenses:
+        expenses_by_category[expense.category] = expenses_by_category.get(expense.category, 0) + expense.amount
+
+    table = [["Category", "Amount"]]
+    for category, amount in expenses_by_category.items():
+        table.append([category, f"₹{amount:.2f}"])
+
+    print("\n💵 Expenses By Category 💵:")
+    print(tabulate(table, headers="firstrow", tablefmt="grid"))
+
+    total_expense = sum(expense.amount for expense in expenses)
+    remaining_budget = budget - total_expense
+
+    summary_table = [
+        ["Total Spent", f"₹{total_expense:.2f}"],
+        ["Budget Remaining", f"₹{remaining_budget:.2f}"]
+    ]
+
+    current_date = datetime.datetime.now()
+    days_in_month = calendar.monthrange(current_date.year, current_date.month)[1]
+    remaining_days = days_in_month - current_date.day
+
+    daily_budget = remaining_budget / remaining_days if remaining_days > 0 else 0
+    summary_table.append(["Budget Per Day", green(f"₹{daily_budget:.2f}")])
+
+    print("\nSummary:")
+    if remaining_budget <= 0:
+        summary_table.append([red("No balance left"), ""])
+    print(tabulate(summary_table, tablefmt="grid"))
+
+def green(text: str) -> str:
+    return f"\033[92m{text}\033[0m"
+
+def red(text: str) -> str:
+    return f"\033[91m{text}\033[0m"
 
 if __name__ == "__main__":
     main()
