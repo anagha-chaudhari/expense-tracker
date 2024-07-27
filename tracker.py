@@ -35,7 +35,7 @@ def get_user_expense() -> Expense: # defining get_user_expense fxn and returns E
             print(red("Invalid category. Please try again!"))
 
 def write_expense_to_file(expense: Expense, file_path: str):
-    print(yellow(f"💰 Saving Your Expense: {expense} to {file_path}"))
+    print(yellow(f"\n💰 Saving Your Expense: {expense} to {file_path}"))
     try: # to handle potential errors
         with open(file_path, "a", encoding="utf-8") as file: # opening a file in append mode "a" with utf-8 encoding
             file.write(f"{expense.name},{expense.amount},{expense.category}\n") # writing expense details into the file
@@ -43,7 +43,7 @@ def write_expense_to_file(expense: Expense, file_path: str):
         print(red(f"Error writing to file: {error}")) 
 
 def summarize_expenses(file_path: str, budget: float):
-    print(yellow("/n /n💰 Summarizing Your Expenses"))
+    print(yellow("\n💰 Summarizing Your Expenses"))
     expenses: List[Expense] = [] # initializing empty list to store class Expense objects
     try:  # to handle errors
         with open(file_path, "r", encoding="utf-8") as file:
